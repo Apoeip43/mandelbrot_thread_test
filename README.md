@@ -5,7 +5,8 @@ testing threads in C++ using a mandelbrot ascii plotter.
 pull the code, then run
 > make build
 
-## Running it
-> ./mandelthread
+## Running it 
+the argument will deteremine the initial max Iteration. the default is 100. Go too high and performance will suffer.
+> ./mandelthread 100
 
-it will output both linear and threaded output and print the execution time.
+will display a zoom animation into an interesting area I like.

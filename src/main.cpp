@@ -169,7 +169,7 @@ void print_image_thread(screen &s, dims coords = {-3, 0.47, -1.12, 1.12}, int ma
 int main(int argc, char *argv[]) {
   screen s = get_size();
   
-  int maxIter = argc > 1 ? atoi(argv[1]) : 6000;
+  int maxIter = argc > 1 ? atoi(argv[1]) : 100;
   dims init_coords = {-3, 0.47, -1.12, 1.12};
   //print_image(s, init_coords, maxIter);
   //print_image_thread(s, init_coords, maxIter);
