@@ -2,13 +2,11 @@
 #include <chrono>
 #include <iostream>
 #include <ostream>
-#include <ratio>
 #include <sstream>
 #include <string>
 #include <sys/ioctl.h>
 #include <thread>
 #include <unistd.h>
-#include <vector>
 #include <thread>
 
 #define PALETTE                                                                \
@@ -82,9 +80,9 @@ void pan(dims &coords_orig, complex dest_position, float step_size = 0.5) {
   LD ah = std::abs(height);
 
   LD x_step = std::clamp((dest_position.x - coords_center.x) * step_size,
-                         -aw / 8, aw / 8);
+                         -aw / 4, aw / 4);
   LD y_step = std::clamp((dest_position.y - coords_center.y) * step_size,
-                         -aw / 8, aw / 8);
+                         -aw / 4, aw / 4);
 
   coords_orig.xA += x_step;
   coords_orig.xB += x_step;
@@ -92,6 +90,23 @@ void pan(dims &coords_orig, complex dest_position, float step_size = 0.5) {
   coords_orig.yB += y_step;
 }
 
+void zoom(dims &coords, float zoom_factor = 1.){
+  // gets screen width and height
+  float width  = coords.xB - coords.xA;
+  float height = coords.yB - coords.yA;
+
+  complex center = get_center(coords);
+
+  //divides factor by 2 as it will be applied to each half from the center 
+  zoom_factor /= 2;
+
+  coords = { center.x - width*zoom_factor, center.x + width*zoom_factor,
+             center.y - height*zoom_factor, center.y + height*zoom_factor};
+}
+
+
+
+//used to test and compare.
 void print_image(screen &s, dims coords = {-3, 0.47, -1.12, 1.12},
                  int maxIter = 100) {
   std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
@@ -111,6 +126,9 @@ void print_image(screen &s, dims coords = {-3, 0.47, -1.12, 1.12},
   std::cout << ((std::chrono::duration<double>)(end - start)).count() << " s" << std::endl;
 }
 
+/*
+ * Thread to be launched for each line
+ */
 void sub_thread(char* line, int y_pos,  screen *s, dims *lims, int maxIter) {
   std::string palette = PALETTE;
   int pal_len = palette.length();
@@ -122,6 +140,9 @@ void sub_thread(char* line, int y_pos,  screen *s, dims *lims, int maxIter) {
   } 
 }
 
+/*
+ * prints image frame but launching a thread for each line. much faster.
+ */
 void print_image_thread(screen &s, dims coords = {-3, 0.47, -1.12, 1.12}, int maxIter = 100) {
   
   std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
@@ -147,9 +168,24 @@ void print_image_thread(screen &s, dims coords = {-3, 0.47, -1.12, 1.12}, int ma
 
 int main(int argc, char *argv[]) {
   screen s = get_size();
-  int maxIter = 6000;
-  dims init_coords = {-1.5, 0.23, -0.56, 0.56};
-  print_image_thread(s, init_coords, maxIter);
-  print_image(s, init_coords, maxIter);
+  
+  int maxIter = argc > 1 ? atoi(argv[1]) : 6000;
+  dims init_coords = {-3, 0.47, -1.12, 1.12};
+  //print_image(s, init_coords, maxIter);
+  //print_image_thread(s, init_coords, maxIter);
+  complex targ_coords = {-.743643887037151, 0.131825904205330};
+  pan(init_coords,targ_coords, 1);
+  
+  // zoom factor and iteration factor
+  LD zf = 0.9337460710904065;
+  LD iter_factor = 1.0111972280966328;
+  
+  while (true) {
+    print_image_thread(s,init_coords,maxIter);
+    zoom(init_coords,zf);
+    maxIter *= iter_factor;
+    usleep(100000); // sleep for .1s
+  }
+
   return 0;
 }
