@@ -16,6 +16,7 @@ CXXFLAGS= -I$(HEADER_DIR) -O3 -std=$(STD)
 OUT=mandelthread
 
 $(LIBS_DIR)/%.o: $(SRC_DIR)/%.cpp 
+	@ mkdir -p $(LIBS_DIR)
 	$(CC) -c $^ -o $@ $(CXXFLAGS)
 
 build: $(LIBS_FILES) $(LIBS_DIR)/main.o
